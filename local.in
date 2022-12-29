@@ -1,0 +1,12 @@
+-r requirements.in
+
+black
+coverage
+flake8
+flake8-isort
+isort
+mypy
+pip-tools
+pre-commit
+pytest
+rich

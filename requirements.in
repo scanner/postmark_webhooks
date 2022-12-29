@@ -1,0 +1,7 @@
+aiofiles
+aiologger
+fastapi
+httpx
+python-dotenv
+pyyaml
+uvicorn[standard]

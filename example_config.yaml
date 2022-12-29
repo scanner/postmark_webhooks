@@ -1,0 +1,46 @@
+---
+# NOTE: All file paths, if relative, are relative to the `main.py` module.
+#
+# mail_services is a list. Each entry represents the inbound stream for a
+# server configured in postmark.
+#
+mail_services:
+  - service1.com
+  - service2.com
+
+# The spool dir is the root directory for the inbound emails. It is expected
+# that there is a sub-directory per mail_service (with the same name as the
+# mail service.)
+#
+spool_dir: ../tests/test_spool_dir
+
+# When there is a sqlite db used by the service it will be stored in this
+# directory.
+#
+db_dir: ../tests/test_db_dir
+
+# Credentials is a dict. The keys are the accounts that have access to this
+# service.
+#
+# The only supported sub-keys is `api_keys` which is a list of API keys
+# associated with that account.
+#
+# Each api key defines:
+#  expiry: where 0 means no expiry (it is not currently used)
+#  key: the api key
+#  permissison: a dictionary of services that this key grants access to
+#     <service name>: list of the routes that this api key grant access to.
+#
+credentials:
+  postmark:
+    api_keys:
+      - expiry: 0
+        key: "foobarbazbat"
+        permissions:
+          "service1.com":
+            - "inbound"
+      - expiry: 0
+        key: "bizboombat"
+        permissions:
+            "service2.com":
+               - "inbound"
