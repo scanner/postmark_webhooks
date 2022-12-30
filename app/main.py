@@ -139,7 +139,7 @@ async def root():
 
 ####################################################################
 #
-@app.post("/inbound/{stream}/")
+@app.post("/{stream}/")
 async def inbound(
     email_post: Request,
     stream: str,
@@ -211,7 +211,7 @@ async def inbound(
 
 ####################################################################
 #
-@app.get("/list/{stream}/")
+@app.get("/{stream}/")
 async def list(
     stream: str,
     api_key_data: APIKey = Depends(get_api_key),
@@ -258,7 +258,7 @@ async def list(
 
 ####################################################################
 #
-@app.get("/get/{stream}/{message_name}")
+@app.get("/{stream}/{message_name}")
 async def get(
     stream: str,
     message_name: str,
@@ -306,7 +306,7 @@ async def get(
 
 ####################################################################
 #
-@app.delete("/get/{stream}/{message_name}")
+@app.delete("/{stream}/{message_name}")
 async def delete(
     stream: str,
     message_name: str,

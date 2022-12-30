@@ -36,21 +36,16 @@ def test_logout(test_app):
 
 ####################################################################
 #
-def test_inbound_success(
+def test_post_success(
     test_app, service_name, service_api_key, spool_dir, inbound_test_data
 ):
-    """
-    Keyword Arguments:
-    test_app    --
-    test_config --
-    """
     msg_hash = short_hash_email(inbound_test_data)
     service_spool_dir = spool_dir / service_name
 
     pre_run = list(service_spool_dir.glob(f"*-{msg_hash}.json"))
 
     response = test_app.post(
-        f"/inbound/{service_name}/?api_key={service_api_key}",
+        f"/{service_name}/?api_key={service_api_key}",
         json=inbound_test_data,
     )
     assert response.status_code == 200
@@ -68,16 +63,8 @@ def test_inbound_success(
 def test_list(
     test_app, service_name, service_api_key, spool_dir, inbound_test_data
 ):
-    """
-    Keyword Arguments:
-    test_app          --
-    service_name      --
-    service_api_key   --
-    spool_dir         --
-    inbound_test_data --
-    """
     response = test_app.post(
-        f"/inbound/{service_name}/?api_key={service_api_key}",
+        f"/{service_name}/?api_key={service_api_key}",
         json=inbound_test_data,
     )
     assert response.status_code == 200
@@ -86,7 +73,7 @@ def test_list(
     msgs = [x.name for x in service_spool_dir.glob("*.json")]
     msgs = sorted(msgs)
 
-    response = test_app.get(f"/list/{service_name}?api_key={service_api_key}")
+    response = test_app.get(f"/{service_name}/?api_key={service_api_key}")
     assert response.status_code == 200
     assert response.json() == msgs
 
@@ -94,15 +81,8 @@ def test_list(
 ####################################################################
 #
 def test_get(test_app, service_name, service_api_key, inbound_test_data):
-    """
-    Keyword Arguments:
-    test_app          --
-    service_name      --
-    service_api_key   --
-    inbound_test_data --
-    """
     response = test_app.post(
-        f"/inbound/{service_name}/?api_key={service_api_key}",
+        f"/{service_name}/?api_key={service_api_key}",
         json=inbound_test_data,
     )
     assert response.status_code == 200
@@ -110,7 +90,7 @@ def test_get(test_app, service_name, service_api_key, inbound_test_data):
 
     msg_name = urllib.parse.quote(msg_name)
     response = test_app.get(
-        f"/get/{service_name}/{msg_name}?api_key={service_api_key}"
+        f"/{service_name}/{msg_name}?api_key={service_api_key}"
     )
     assert response.status_code == 200
     assert response.json() == inbound_test_data
@@ -121,7 +101,7 @@ def test_get(test_app, service_name, service_api_key, inbound_test_data):
 def test_delete(test_app, service_name, service_api_key, inbound_test_data):
 
     response = test_app.post(
-        f"/inbound/{service_name}/?api_key={service_api_key}",
+        f"/{service_name}/?api_key={service_api_key}",
         json=inbound_test_data,
     )
     assert response.status_code == 200
@@ -129,11 +109,11 @@ def test_delete(test_app, service_name, service_api_key, inbound_test_data):
 
     pmsg_name = urllib.parse.quote(msg_name)
     response = test_app.delete(
-        f"/get/{service_name}/{pmsg_name}?api_key={service_api_key}"
+        f"/{service_name}/{pmsg_name}?api_key={service_api_key}"
     )
     assert response.status_code == 200
     assert response.json()["message"] == msg_name
 
-    response = test_app.get(f"/list/{service_name}?api_key={service_api_key}")
+    response = test_app.get(f"/{service_name}/?api_key={service_api_key}")
     assert response.status_code == 200
     assert msg_name not in response.json()
