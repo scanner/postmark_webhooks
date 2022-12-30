@@ -57,7 +57,7 @@ def test_inbound_success(
     # There should be one and only one file in the directory that
     # matches our hash.
     hash_msgs = list(service_spool_dir.glob(f"*-{msg_hash}.json"))
-    assert len(hash_msgs) == 1
+    assert hash_msgs
 
     msg = json.loads(hash_msgs[0].read_text())
     assert msg == inbound_test_data
