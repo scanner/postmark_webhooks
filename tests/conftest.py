@@ -146,7 +146,9 @@ def config_data(service_name, service_api_key, spool_dir, db_dir):
                     {
                         "expiry": 0,
                         "key": service_api_key,
-                        "permissions": {service_name: ["inbound", "list"]},
+                        "permissions": {
+                            service_name: ["inbound", "list", "get"]
+                        },
                     }
                 ]
             }

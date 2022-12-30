@@ -8,6 +8,7 @@ Tests for the `main` module of our FastAPI app.
 # system imports
 #
 import json
+import urllib.parse
 
 # Project imports
 #
@@ -53,7 +54,7 @@ def test_inbound_success(
         json=inbound_test_data,
     )
     assert response.status_code == 200
-    assert response.json() == {"status": "all good"}
+    assert response.json()["status"] == "all good"
 
     hash_msgs = list(service_spool_dir.glob(f"*-{msg_hash}.json"))
     assert (len(hash_msgs) - len(pre_run)) == 1
@@ -88,3 +89,28 @@ def test_list(
     response = test_app.get(f"/list/{service_name}?api_key={service_api_key}")
     assert response.status_code == 200
     assert response.json() == msgs
+
+
+####################################################################
+#
+def test_get(test_app, service_name, service_api_key, inbound_test_data):
+    """
+    Keyword Arguments:
+    test_app          --
+    service_name      --
+    service_api_key   --
+    inbound_test_data --
+    """
+    response = test_app.post(
+        f"/inbound/{service_name}/?api_key={service_api_key}",
+        json=inbound_test_data,
+    )
+    assert response.status_code == 200
+    msg_name = response.json()["message"]
+
+    msg_name = urllib.parse.quote(msg_name)
+    response = test_app.get(
+        f"/get/{service_name}/{msg_name}?api_key={service_api_key}"
+    )
+    assert response.status_code == 200
+    assert response.json() == inbound_test_data

@@ -9,6 +9,7 @@ Webhook destination for Postmark to deliver email.
 #
 import json
 import os
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
@@ -28,7 +29,7 @@ from fastapi.security.api_key import (
     APIKeyQuery,
 )
 from starlette.responses import JSONResponse, RedirectResponse
-from starlette.status import HTTP_403_FORBIDDEN
+from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
 
 # project imports
 from .utils import short_hash_email
@@ -196,7 +197,7 @@ async def inbound(
     #     response back to postmark.
     #
 
-    response = JSONResponse({"status": "all good"})
+    response = JSONResponse({"status": "all good", "message": email_file_name})
     response.set_cookie(
         API_KEY_NAME,
         value=api_key,
@@ -244,6 +245,45 @@ async def list(
         messages.append(message.name)
     messages = sorted(messages)
     return messages
+
+
+####################################################################
+#
+@app.get("/get/{stream}/{message_name}")
+async def get(
+    stream: str,
+    message_name: str,
+    api_key_data: APIKey = Depends(get_api_key),
+):
+    # Make sure that the api key used is allowed to get to `get` for
+    # `<stream>`
+    #
+    api_key, api_key_info = api_key_data
+    if stream in api_key_info["permissions"]:
+        if "get" not in api_key_info["permissions"][stream]:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Action denied",
+            )
+    else:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN,
+            detail="No permission",
+        )
+
+    email_file_name = urllib.parse.unquote(message_name)
+    stream_spool_dir = SPOOL_DIR / stream
+    fname = stream_spool_dir / email_file_name
+
+    print(f"opening file name: {fname}")
+    try:
+        async with aiofiles.open(fname, mode="r") as f:
+            contents = await f.read()
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail="No such message"
+        )
+    return json.loads(contents)
 
 
 ####################################################################
