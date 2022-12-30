@@ -43,6 +43,10 @@ def test_inbound_success(
     test_app    --
     test_config --
     """
+    msg_hash = short_hash_email(inbound_test_data)
+    service_spool_dir = spool_dir / service_name
+
+    pre_run = list(service_spool_dir.glob(f"*-{msg_hash}.json"))
 
     response = test_app.post(
         f"/inbound/{service_name}/?api_key={service_api_key}",
@@ -51,13 +55,8 @@ def test_inbound_success(
     assert response.status_code == 200
     assert response.json() == {"status": "all good"}
 
-    msg_hash = short_hash_email(inbound_test_data)
-    service_spool_dir = spool_dir / service_name
-
-    # There should be one and only one file in the directory that
-    # matches our hash.
     hash_msgs = list(service_spool_dir.glob(f"*-{msg_hash}.json"))
-    assert hash_msgs
+    assert (len(hash_msgs) - len(pre_run)) == 1
 
     msg = json.loads(hash_msgs[0].read_text())
     assert msg == inbound_test_data
