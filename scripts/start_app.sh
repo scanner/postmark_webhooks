@@ -14,5 +14,5 @@ echo "Script dir is ${SCRIPT_DIR}"
 echo "Install dir is ${INSTALL_DIR}"
 
 cd "${INSTALL_DIR}"
-source "${INSTALL_DIR}/venv/bin/activate"
+. "${INSTALL_DIR}/venv/bin/activate"
 uvicorn --host 127.0.0.1 --port 8000 app.main:app
