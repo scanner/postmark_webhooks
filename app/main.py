@@ -48,7 +48,7 @@ ENV = {
 }
 
 CONFIG_FILE = Path(ENV.get("CONFIG_FILE", "/usr/local/etc/postmark.yaml"))
-CONFIG = yaml.load(CONFIG_FILE.read_text(), Loader=yaml.CLoader)
+CONFIG = yaml.load(CONFIG_FILE.read_text(), Loader=yaml.Loader)
 SPOOL_DIR = Path(CONFIG.get("spool_dir", "/var/spool/postmark"))
 COOKIE_DOMAIN = CONFIG.get("cookie_domain", "localtest.me")
 
