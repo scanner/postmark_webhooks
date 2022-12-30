@@ -6,7 +6,7 @@
 #       asyncio based process should be good enough to handle all the
 #       traffic it will receive.
 #
-SCRIPT_PATH="$(readlink -f "${BASH_SOURCE}")"
+SCRIPT_PATH="$(readlink -f $0)"
 SCRIPT_DIR="$(dirname "${SCRIPT_PATH}")"
 INSTALL_DIR="$(dirname "${SCRIPT_DIR}")"
 echo "Script path is ${SCRIPT_PATH}"
