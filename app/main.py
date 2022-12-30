@@ -16,6 +16,7 @@ from typing import Dict
 # 3rd party imports
 #
 import aiofiles
+import aiofiles.os
 import yaml
 from aiologger import Logger
 from dotenv import dotenv_values
@@ -159,17 +160,19 @@ async def inbound(
     # Make sure that the api key used is allowed to post to `inbound` for
     # `<stream>`
     #
+    # XXX Shoudl make these permission checks be a util function.
+    #
     api_key, api_key_info = api_key_data
     if stream in api_key_info["permissions"]:
         if "inbound" not in api_key_info["permissions"][stream]:
             raise HTTPException(
                 status_code=HTTP_403_FORBIDDEN,
-                detail="Permission denied credentials",
+                detail="Action denied",
             )
     else:
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN,
-            detail="Permission denied credentials",
+            detail="No permission",
         )
 
     email = await email_post.json()
@@ -178,7 +181,6 @@ async def inbound(
     now = datetime.now().isoformat()
     email_file_name = f"{now}-{short_hash}.json"
     stream_spool_dir = SPOOL_DIR / stream
-    stream_spool_dir.mkdir(exist_ok=True)
     fname = stream_spool_dir / email_file_name
 
     # We need to make sure that the file is written before we send our
@@ -208,9 +210,40 @@ async def inbound(
 
 ####################################################################
 #
-def list_messages():
-    """ """
-    pass
+@app.get("/list/{stream}/")
+async def list(
+    stream: str,
+    api_key_data: APIKey = Depends(get_api_key),
+):
+    """
+    List all of the messages in the specified stream's spool
+    directory, sorted by file name (which is prefixed with a datetime)
+
+    XXX Right now this does not handle pagination.. so better be sure
+        not to let this directory build up too much.
+    """
+    # Make sure that the api key used is allowed to get to `list` for
+    # `<stream>`
+    #
+    api_key, api_key_info = api_key_data
+    if stream in api_key_info["permissions"]:
+        if "list" not in api_key_info["permissions"][stream]:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Action denied",
+            )
+    else:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN,
+            detail="No permission",
+        )
+
+    stream_spool_dir = SPOOL_DIR / stream
+    messages = []
+    for message in await aiofiles.os.scandir(str(stream_spool_dir)):
+        messages.append(message.name)
+    messages = sorted(messages)
+    return messages
 
 
 ####################################################################

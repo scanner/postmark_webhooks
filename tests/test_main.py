@@ -45,7 +45,7 @@ def test_inbound_success(
     """
 
     response = test_app.post(
-        f"/inbound/{service_name}?api_key={service_api_key}",
+        f"/inbound/{service_name}/?api_key={service_api_key}",
         json=inbound_test_data,
     )
     assert response.status_code == 200
@@ -61,3 +61,31 @@ def test_inbound_success(
 
     msg = json.loads(hash_msgs[0].read_text())
     assert msg == inbound_test_data
+
+
+####################################################################
+#
+def test_list(
+    test_app, service_name, service_api_key, spool_dir, inbound_test_data
+):
+    """
+    Keyword Arguments:
+    test_app          --
+    service_name      --
+    service_api_key   --
+    spool_dir         --
+    inbound_test_data --
+    """
+    response = test_app.post(
+        f"/inbound/{service_name}/?api_key={service_api_key}",
+        json=inbound_test_data,
+    )
+    assert response.status_code == 200
+
+    service_spool_dir = spool_dir / service_name
+    msgs = [x.name for x in service_spool_dir.glob("*.json")]
+    msgs = sorted(msgs)
+
+    response = test_app.get(f"/list/{service_name}?api_key={service_api_key}")
+    assert response.status_code == 200
+    assert response.json() == msgs
