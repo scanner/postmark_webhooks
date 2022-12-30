@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # Start the uvicorn server for our FastAPI app.
 #
