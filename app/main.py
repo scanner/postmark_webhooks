@@ -244,7 +244,16 @@ async def list(
     for message in await aiofiles.os.scandir(str(stream_spool_dir)):
         messages.append(message.name)
     messages = sorted(messages)
-    return messages
+    response = JSONResponse(messages)
+    response.set_cookie(
+        API_KEY_NAME,
+        value=api_key,
+        domain=COOKIE_DOMAIN,
+        httponly=True,
+        max_age=1800,
+        expires=1800,
+    )
+    return response
 
 
 ####################################################################
@@ -283,7 +292,62 @@ async def get(
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND, detail="No such message"
         )
-    return json.loads(contents)
+    response = JSONResponse(json.loads(contents))
+    response.set_cookie(
+        API_KEY_NAME,
+        value=api_key,
+        domain=COOKIE_DOMAIN,
+        httponly=True,
+        max_age=1800,
+        expires=1800,
+    )
+    return response
+
+
+####################################################################
+#
+@app.delete("/get/{stream}/{message_name}")
+async def delete(
+    stream: str,
+    message_name: str,
+    api_key_data: APIKey = Depends(get_api_key),
+):
+    # Make sure that the api key used is allowed to get to `get` for
+    # `<stream>`
+    #
+    api_key, api_key_info = api_key_data
+    if stream in api_key_info["permissions"]:
+        if "delete" not in api_key_info["permissions"][stream]:
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Action denied",
+            )
+    else:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN,
+            detail="No permission",
+        )
+
+    email_file_name = urllib.parse.unquote(message_name)
+    stream_spool_dir = SPOOL_DIR / stream
+    fname = stream_spool_dir / email_file_name
+
+    try:
+        await aiofiles.os.remove(fname)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail="No such message"
+        )
+    response = JSONResponse({"status": "all good", "message": email_file_name})
+    response.set_cookie(
+        API_KEY_NAME,
+        value=api_key,
+        domain=COOKIE_DOMAIN,
+        httponly=True,
+        max_age=1800,
+        expires=1800,
+    )
+    return response
 
 
 ####################################################################

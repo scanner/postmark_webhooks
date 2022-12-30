@@ -114,3 +114,26 @@ def test_get(test_app, service_name, service_api_key, inbound_test_data):
     )
     assert response.status_code == 200
     assert response.json() == inbound_test_data
+
+
+####################################################################
+#
+def test_delete(test_app, service_name, service_api_key, inbound_test_data):
+
+    response = test_app.post(
+        f"/inbound/{service_name}/?api_key={service_api_key}",
+        json=inbound_test_data,
+    )
+    assert response.status_code == 200
+    msg_name = response.json()["message"]
+
+    pmsg_name = urllib.parse.quote(msg_name)
+    response = test_app.delete(
+        f"/get/{service_name}/{pmsg_name}?api_key={service_api_key}"
+    )
+    assert response.status_code == 200
+    assert response.json()["message"] == msg_name
+
+    response = test_app.get(f"/list/{service_name}?api_key={service_api_key}")
+    assert response.status_code == 200
+    assert msg_name not in response.json()
