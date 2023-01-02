@@ -15,4 +15,5 @@ echo "Install dir is ${INSTALL_DIR}"
 
 cd "${INSTALL_DIR}"
 . "${INSTALL_DIR}/venv/bin/activate"
-uvicorn --host 127.0.0.1 --port 8000 app.main:app
+# uvicorn --host 127.0.0.1 --port 8000 app.main:app
+gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000

@@ -1,6 +1,7 @@
 aiofiles
 aiologger
 fastapi
+gunicorn
 httpx
 python-dotenv
 pyyaml
